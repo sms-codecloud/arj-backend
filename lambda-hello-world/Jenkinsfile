@@ -8,8 +8,11 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // use checkout scm so multibranch / PR jobs build the correct branch/PR
-                checkout scm
+                cleanWs() // clear job workspace
+                bat 'git --version'
+                dir("${env.WORKSPACE}\\arj-backend") {
+                    bat 'git clone -b main https://github.com/sms-codecloud/arj-backend.git .'
+                }
             }
         }
 
@@ -20,17 +23,32 @@ pipeline {
             }
         }
 
-        stage('Deploy to AWS Lambda via Terraform') {
+        stage('Validate .zip availability') {
             steps {
-                // Inject AWS credentials from Jenkins credentials store
-                // Create credentials (Secret text) with IDs aws-access-key-id and aws-secret-access-key
-                withCredentials([string(credentialsId: 'aws-access-key-id', variable: 'AWS_ACCESS_KEY_ID'),
-                                 string(credentialsId: 'aws-secret-access-key', variable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    // Call Windows PowerShell deploy script (Jenkins injects env vars)
-                    bat 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\deploy_with_terraform.ps1'
+                    bat 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\validate_zip.ps1'
                 }
             }
         }
+
+        // stage('Deploy To Lambda') {
+        //     steps {
+        //         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
+        //             dir("${env.WORKSPACE}\\arj-backend\\lambda") {
+        //                 bat """
+        //                     set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+        //                     set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
+
+        //                     set PATH=C:\\binaries\\terraform;%PATH%
+
+        //                     terraform init -no-color
+        //                     terraform plan -no-color
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
+
+        
     }
 
     post {
