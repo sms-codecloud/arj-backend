@@ -17,20 +17,14 @@ pipeline {
         }
 
       stage('Build Lambda Zip') {
-      steps {
-        powershell '''
-          Write-Host "🔨 Building .NET 8 Lambda"
-          .\\arj-backend\\scripts\\build_and_zip.ps1
-        '''
-      }
+        steps {
+            powershell(script: '.\\scripts\\build_and_zip.ps1', returnStatus: true)
+        }
     }
 
     stage('Validate Lambda Zip') {
       steps {
-        powershell '''
-          Write-Host "🔎 Validating lambda.zip"
-          .\\arj-backend\\scripts\\validate_zip.ps1 -ZipFile .\\arj-backend\\lambda.zip
-        '''
+        powershell(script: '.\\scripts\\validate_zip.ps1', returnStatus: true)
       }
     }
 
