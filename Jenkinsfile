@@ -26,7 +26,6 @@ pipeline {
         stage('Validate .zip availability') {
             steps {
                     bat 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\validate_zip.ps1'
-                }
             }
         }
 
