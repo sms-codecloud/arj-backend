@@ -19,9 +19,6 @@ pipeline {
         stage('Checkout') {
             steps {
                 cleanWs() // clear job workspace
-                bat 'git --version'
-                bat 'terraform --version'
-                bat 'dotnet --version'
                 dir("${env.WORKSPACE}\\arj-backend") {
                     bat 'git clone -b main https://github.com/sms-codecloud/arj-backend.git .'
                 }
