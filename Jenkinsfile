@@ -8,9 +8,10 @@ pipeline {
     stages {
         stage('software versions') {
             steps {
-                bat 'set PATH=C:\\binaries\\terraform;%PATH%'
+                // bat 'set PATH=C:\\binaries\\terraform;%PATH%'
+                // bat 'terraform --version'
+
                 bat 'git --version'
-                bat 'terraform --version'
                 bat 'dotnet --version'
             }
         }
