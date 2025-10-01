@@ -6,10 +6,20 @@ pipeline {
     }
 
     stages {
+        stage('software versions') {
+            steps {
+                bat 'git --version'
+                bat 'terraform --version'
+                bat 'dotnet --version'
+            }
+        }
+
         stage('Checkout') {
             steps {
                 cleanWs() // clear job workspace
                 bat 'git --version'
+                bat 'terraform --version'
+                bat 'dotnet --version'
                 dir("${env.WORKSPACE}\\arj-backend") {
                     bat 'git clone -b main https://github.com/sms-codecloud/arj-backend.git .'
                 }
@@ -24,13 +34,13 @@ pipeline {
     }
 }
 
-stage('Validate Lambda Zip') {
-    steps {
-        dir("${env.WORKSPACE}\\arj-backend") {
-            powershell(script: '.\\scripts\\validate_zip.ps1', returnStatus: true)
-        }
-    }
-}
+// stage('Validate Lambda Zip') {
+//     steps {
+//         dir("${env.WORKSPACE}\\arj-backend") {
+//             powershell(script: '.\\scripts\\validate_zip.ps1', returnStatus: true)
+//         }
+//     }
+// }
 
         // stage('Deploy To Lambda') {
         //     steps {
