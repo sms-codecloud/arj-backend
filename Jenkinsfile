@@ -18,15 +18,12 @@ pipeline {
 
        stage('Build and Zip') {
             steps {
-                script {
-                    def file_path = 'scripts\\build_and_zip.ps1'
-                    if (!fileExists(file_path)) {
-                        error "build_and_zip.ps1 not found."
-                    }
-                    bat "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"${file_path}\""
-                }
+                powershell '''
+                    Write-Host "Running Lambda .NET 8 Build"
+                    .\\arj-backend\\scripts\\build_and_zip.ps1
+                '''
             }
-        }
+        }   
 
         stage('Validate .zip availability') {
             steps {
