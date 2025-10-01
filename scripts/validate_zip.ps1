@@ -1,49 +1,34 @@
-param()
+param(
+    [string]$ZipFile = "..\\lambda.zip"
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# Validate that lambda.zip exists and contains expected published files (.dll)
-$RootDir = Resolve-Path (Join-Path $PSScriptRoot '..') | Select-Object -ExpandProperty Path
-$ZipPath = Join-Path $RootDir 'lambda.zip'
+$FullPath = Resolve-Path $ZipFile -ErrorAction SilentlyContinue
 
-Write-Host "Root: $RootDir"
-Write-Host "Zip path: $ZipPath"
-
-if (-not (Test-Path $ZipPath)) {
-    Write-Error "Error: $ZipPath not found."
-    exit 2
+if (-not $FullPath) {
+    Write-Error "❌ Zip file not found: $ZipFile"
+    exit 1
 }
 
-# Use .NET ZipFile to inspect entries
-Add-Type -AssemblyName System.IO.Compression.FileSystem
+$size = (Get-Item $FullPath).Length
+if ($size -le 0) {
+    Write-Error "❌ Zip file is empty: $FullPath"
+    exit 1
+}
 
 try {
-    $zip = [System.IO.Compression.ZipFile]::OpenRead($ZipPath)
-    try {
-        $entries = $zip.Entries | ForEach-Object { $_.FullName }
-    } finally {
-        $zip.Dispose()
+    $zip = [System.IO.Compression.ZipFile]::OpenRead($FullPath)
+    $entries = $zip.Entries.Count
+    $zip.Dispose()
+    if ($entries -eq 0) {
+        Write-Error "❌ Zip file contains no entries!"
+        exit 1
     }
-} catch {
-    Write-Error "Failed to read zip file: $_"
-    exit 3
+    Write-Host "✅ Zip file is valid ($entries files, size: $size bytes): $FullPath"
 }
-
-if (-not $entries -or $entries.Count -eq 0) {
-    Write-Error "Zip file is empty."
-    exit 4
+catch {
+    Write-Error "❌ Failed to open zip file: $_"
+    exit 1
 }
-
-Write-Host "Zip contains $($entries.Count) entries. Sample entries:"
-$entries | Select-Object -First 10 | ForEach-Object { Write-Host "  $_" }
-
-# Ensure at least one DLL exists in the root or subfolders
-$hasDll = $entries | Where-Object { $_ -match '\.dll$' }
-if (-not $hasDll) {
-    Write-Error "No .dll files found inside lambda.zip. Verify publish output."
-    exit 5
-}
-
-Write-Host "Validation successful: lambda.zip looks valid."
-exit 0

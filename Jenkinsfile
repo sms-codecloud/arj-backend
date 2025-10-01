@@ -16,26 +16,23 @@ pipeline {
             }
         }
 
-       stage('Build and Zip') {
-            steps {
-                powershell '''
-                    Write-Host "Running Lambda .NET 8 Build"
-                    .\\arj-backend\\scripts\\build_and_zip.ps1
-                '''
-            }
-        }   
+      stage('Build Lambda Zip') {
+      steps {
+        powershell '''
+          Write-Host "🔨 Building .NET 8 Lambda"
+          .\\arj-backend\\scripts\\build_and_zip.ps1
+        '''
+      }
+    }
 
-        stage('Validate .zip availability') {
-            steps {
-                script {
-                    def file_path = 'scripts\\validate_zip.ps1'
-                    if (!fileExists(file_path)) {
-                        error "validate_zip.ps1 not found."
-                    }
-                    bat "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"${file_path}\""
-                }
-            }
-        }
+    stage('Validate Lambda Zip') {
+      steps {
+        powershell '''
+          Write-Host "🔎 Validating lambda.zip"
+          .\\arj-backend\\scripts\\validate_zip.ps1 -ZipFile .\\arj-backend\\lambda.zip
+        '''
+      }
+    }
 
         // stage('Deploy To Lambda') {
         //     steps {
