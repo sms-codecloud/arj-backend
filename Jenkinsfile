@@ -28,13 +28,13 @@ pipeline {
             }
         }
 
-  stage('Build Lambda Zip') {
-    steps {
-        dir("${env.WORKSPACE}\\arj-backend") {
-            powershell(script: '.\\scripts\\build_and_zip.ps1', returnStatus: true)
+        stage('Build Lambda Zip') {
+            steps {
+                dir("${env.WORKSPACE}\\arj-backend") {
+                    powershell(script: '.\\scripts\\build_and_zip.ps1')
+                }
+            }
         }
-    }
-}
 
 // stage('Validate Lambda Zip') {
 //     steps {
