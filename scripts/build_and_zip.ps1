@@ -56,7 +56,8 @@ if (Test-Path $ZipFile) {
 }
 
 Write-Host "Creating zip archive from published output..."
-$items = Get-ChildItem -Path $PublishDir -Recurse -File
+# Force array output so .Count works even when a single file is returned
+$items = @(Get-ChildItem -Path $PublishDir -Recurse -File -ErrorAction SilentlyContinue)
 if ($items.Count -eq 0) {
     Write-Error "Publish directory is empty: $PublishDir"
     exit 5
