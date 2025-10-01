@@ -1,5 +1,6 @@
 pipeline {
-    agent any
+    agent { label 'win-dev' }
+    customWorkspace 'D:\\Jenkins\\workspace\\arj-backend'
 
     environment {
         AWS_REGION = 'ap-south-1'
