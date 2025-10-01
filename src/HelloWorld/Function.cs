@@ -1,17 +1,20 @@
+using System.Text.Json;
 using Amazon.Lambda.Core;
+using Amazon.Lambda.RuntimeSupport;
 using Amazon.Lambda.Serialization.SystemTextJson;
 
-[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
-
-namespace HelloWorld
+public class Function
 {
-    public class Function
+    public string FunctionHandler(string input, ILambdaContext context)
     {
-        // Simple Lambda function that returns a greeting string.
-        public string FunctionHandler(string input, ILambdaContext context)
-        {
-            var name = string.IsNullOrEmpty(input) ? "World" : input;
-            return $"Hello, {name} from .NET 6 Lambda!";
-        }
+        return $"Hello from .NET 8 Lambda! You said: {input}";
+    }
+
+    public static async Task Main(string[] args)
+    {
+        Func<string, ILambdaContext, string> handler = new Function().FunctionHandler;
+        await LambdaBootstrapBuilder.Create(handler, new DefaultLambdaJsonSerializer())
+            .Build()
+            .RunAsync();
     }
 }
