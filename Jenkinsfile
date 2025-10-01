@@ -10,7 +10,7 @@ pipeline {
             steps {
                 cleanWs() // clear job workspace
                 bat 'git --version'
-                dir("${env.WORKSPACE}\\arj-backend") {
+                dir("${env.WORKSPACE}") {
                     bat 'git clone -b main https://github.com/sms-codecloud/arj-backend.git .'
                 }
             }
