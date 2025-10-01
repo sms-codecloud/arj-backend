@@ -16,16 +16,27 @@ pipeline {
             }
         }
 
-        stage('Build and Zip') {
+       stage('Build and Zip') {
             steps {
-                // On Windows agents invoke PowerShell to build & package
-                bat 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\build_and_zip.ps1'
+                script {
+                    def file_path = 'scripts\\build_and_zip.ps1'
+                    if (!fileExists(file_path)) {
+                        error "build_and_zip.ps1 not found."
+                    }
+                    bat "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"${file_path}\""
+                }
             }
         }
 
         stage('Validate .zip availability') {
             steps {
-                    bat 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\\validate_zip.ps1'
+                script {
+                    def file_path = 'scripts\\validate_zip.ps1'
+                    if (!fileExists(file_path)) {
+                        error "validate_zip.ps1 not found."
+                    }
+                    bat "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"${file_path}\""
+                }
             }
         }
 
