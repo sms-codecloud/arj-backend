@@ -6,8 +6,8 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "arj-terraform-state"
-    key    = "terraform/state/lambda/terraform.tfstate"
+    bucket = "arj-bootcamp"
+    key    = "terraform/state/arj-backend/terraform.tfstate"
     region = "ap-south-1"
   }
   required_version = ">= 1.3.0"
