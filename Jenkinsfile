@@ -1,8 +1,13 @@
 pipeline {
   agent { label 'win-dev' }
 
+  // --- Parameter to control Apply/Destroy ---
   parameters {
-    choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Terraform action')
+    booleanParam(
+      name: 'TF_APPLY',
+      defaultValue: true,
+      description: 'If true: terraform apply. If false: terraform destroy.'
+    )
   }
 
   environment {
@@ -10,7 +15,6 @@ pipeline {
   }
 
   stages {
-
     stage('Tooling / Versions') {
       steps {
         withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
@@ -35,8 +39,6 @@ pipeline {
       steps {
         dir('src/hello_world') {
           powershell '''
-            $ErrorActionPreference = "Stop"
-
             $publishDir = Join-Path $env:WORKSPACE 'publish'
             if (Test-Path $publishDir) { Remove-Item -Recurse -Force $publishDir }
             New-Item -ItemType Directory -Path $publishDir | Out-Null
@@ -60,45 +62,41 @@ pipeline {
     stage('Deploy lambda') {
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
-          withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}", "ACTION=${params.ACTION}"]) {
+          withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}", "TF_APPLY=${params.TF_APPLY}"]) {
             powershell '''
-                $ErrorActionPreference = "Stop"
+              $ErrorActionPreference = "Stop"
+              $env:AWS_DEFAULT_REGION = $env:AWS_REGION
 
-                $env:AWS_DEFAULT_REGION = $env:AWS_REGION
+              # ZIP to deploy
+              $zip = Resolve-Path "$env:WORKSPACE\\lambda_deploy.zip"
+              if (-not (Test-Path $zip)) { throw "Zip not found: $env:WORKSPACE\\lambda_deploy.zip" }
 
-                # Artifact to deploy
-                $zip = Resolve-Path "$env:WORKSPACE\\lambda_deploy.zip"
-                if (-not (Test-Path $zip)) { throw "Zip not found: $env:WORKSPACE\\lambda_deploy.zip" }
+              # Terraform directory (CHANGE if your code is in 'lambda')
+              $tfDir = "$env:WORKSPACE\\tf"
+              if (-not (Test-Path $tfDir)) { throw "Terraform dir not found: $tfDir" }
 
-                # Terraform working directory (change to 'tf' if your code is there)
-                $tfDir = "$env:WORKSPACE\\tf"
-                if (-not (Test-Path $tfDir)) { throw "Terraform dir not found: $tfDir" }
+              Write-Host "TF_APPLY = $env:TF_APPLY"
+              terraform -chdir="$tfDir" init -upgrade -no-color -input=false
 
-                Write-Host "Terraform action: $env:ACTION"
-                terraform -chdir="$tfDir" init -upgrade -no-color -input=false
-
-                if ($env:ACTION -eq "apply") {
-                  Write-Host "Running: terraform plan + apply"
-                  terraform -chdir="$tfDir" plan -no-color -input=false `
-                    -var "aws_region=$env:AWS_REGION" `
-                    -var "lambda_zip=$($zip.Path)"
-                  terraform -chdir="$tfDir" apply -no-color -input=false -auto-approve `
-                    -var "aws_region=$env:AWS_REGION" `
-                    -var "lambda_zip=$($zip.Path)"
-                }
-                elseif ($env:ACTION -eq "destroy") {
-                  Write-Host "Running: terraform plan -destroy + destroy"
-                  terraform -chdir="$tfDir" plan -destroy -no-color -input=false `
-                    -var "aws_region=$env:AWS_REGION" `
-                    -var "lambda_zip=$($zip.Path)"
-                  terraform -chdir="$tfDir" destroy -no-color -input=false -auto-approve `
-                    -var "aws_region=$env:AWS_REGION" `
-                    -var "lambda_zip=$($zip.Path)"
-                }
-                else {
-                  throw "Unsupported ACTION: $env:ACTION (expected 'apply' or 'destroy')"
-                }
-              '''
+              if ($env:TF_APPLY -eq "true") {
+                Write-Host "Running: terraform plan + apply"
+                terraform -chdir="$tfDir" plan -no-color -input=false `
+                  -var "aws_region=$env:AWS_REGION" `
+                  -var "lambda_zip=$($zip.Path)"
+                terraform -chdir="$tfDir" apply -no-color -input=false -auto-approve `
+                  -var "aws_region=$env:AWS_REGION" `
+                  -var "lambda_zip=$($zip.Path)"
+              }
+              else {
+                Write-Host "Running: terraform plan -destroy + destroy"
+                terraform -chdir="$tfDir" plan -destroy -no-color -input=false `
+                  -var "aws_region=$env:AWS_REGION" `
+                  -var "lambda_zip=$($zip.Path)"
+                terraform -chdir="$tfDir" destroy -no-color -input=false -auto-approve `
+                  -var "aws_region=$env:AWS_REGION" `
+                  -var "lambda_zip=$($zip.Path)"
+              }
+            '''
           }
         }
       }
