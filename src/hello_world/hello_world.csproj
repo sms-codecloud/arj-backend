@@ -3,8 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!-- Remove RuntimeIdentifiers/PublishAot for managed runtime -->
-    <!-- Optional but recommended for smaller zips: -->
+    <!-- Optional: quicker startup -->
     <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 

@@ -5,6 +5,7 @@ using Amazon.Lambda.Serialization.SystemTextJson;
 
 public class Function
 {
+    // Example input: "World"
     public string FunctionHandler(string input, ILambdaContext context)
     {
         return $"Hello from .NET 8 Lambda! You said: {input}";

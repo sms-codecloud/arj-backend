@@ -1,34 +1,23 @@
-param(
-    [string]$ZipFile = (Join-Path $PSScriptRoot "..\lambda.zip")
+Param(
+  [string]$ZipPath = "$PSScriptRoot\..\lambda.zip"
 )
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
-$FullPath = Resolve-Path $ZipFile -ErrorAction SilentlyContinue
-
-if (-not $FullPath) {
-    Write-Error "Zip file not found: $ZipFile"
-    exit 1
+if (-not (Test-Path $ZipPath)) {
+  Write-Error "Zip not found: $ZipPath"
+  exit 1
 }
 
-$size = (Get-Item $FullPath).Length
-if ($size -le 0) {
-    Write-Error "Zip file is empty: $FullPath"
-    exit 1
-}
-
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$tmp = Join-Path $env:TEMP ("lz_" + [guid]::NewGuid())
+New-Item -ItemType Directory -Path $tmp | Out-Null
 try {
-    $zip = [System.IO.Compression.ZipFile]::OpenRead($FullPath)
-    $entries = $zip.Entries.Count
-    $zip.Dispose()
-    if ($entries -eq 0) {
-        Write-Error "Zip file contains no entries!"
-        exit 1
-    }
-    Write-Host "Zip file is valid ($entries files, size: $size bytes): $FullPath"
-}
-catch {
-    Write-Error "Failed to open zip file: $_"
-    exit 1
+  [System.IO.Compression.ZipFile]::ExtractToDirectory($ZipPath, $tmp)
+  $dll = Get-ChildItem -Path $tmp -Recurse -Filter hello_world.dll | Select-Object -First 1
+  if (-not $dll) {
+    Write-Error "hello_world.dll not found inside zip. Ensure publish produced correct artifacts."
+    exit 2
+  }
+  Write-Host "Zip looks good. Found: $($dll.FullName)"
+} finally {
+  Remove-Item -Recurse -Force $tmp
 }

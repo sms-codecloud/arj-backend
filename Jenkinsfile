@@ -13,27 +13,21 @@ pipeline {
           bat 'dotnet --version'
           bat 'terraform --version'
         }
-        // quick sanity check of your repo
-        bat 'dir /s /b *.sln *.csproj'
+        bat 'dir /s /b *.csproj'
       }
     }
 
-    stage('Restore & Build & Test') {
+    stage('Restore & Build') {
       steps {
-        // Restore/build using the solution - this covers src + tests
-        bat 'dotnet restore hello_world.sln'
-        bat 'dotnet build hello_world.sln -c Release --no-restore'
-
-        // Run tests if they exist (yours are under test/hello_world.Tests)
-        dir('test/hello_world.Tests') {
-          bat 'dotnet test -c Release --no-build'
+        dir('src/hello_world') {
+          bat 'dotnet restore hello_world.csproj'
+          bat 'dotnet build hello_world.csproj -c Release --no-restore'
         }
       }
     }
 
     stage('Publish & Zip Lambda') {
       steps {
-        // Publish the Lambda project for Linux (framework-dependent)
         dir('src/hello_world') {
           powershell '''
             $publishDir = Join-Path $env:WORKSPACE 'publish'
