@@ -54,28 +54,30 @@ pipeline {
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
           withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
-            dir('lambda') {
-              bat '''
-                @echo off
-                setlocal ENABLEDELAYEDEXPANSION
+            // No need for dir('lambda'); -chdir makes it explicit
+            powershell '''
+              $ErrorActionPreference = "Stop"
 
-                set AWS_DEFAULT_REGION=%AWS_REGION%
-                set ZIP=%WORKSPACE%\\lambda.zip
-                if not exist "!ZIP!" (
-                  echo ERROR: Zip not found at "!ZIP!"
-                  exit /b 1
-                )
+              # Region & ZIP
+              $env:AWS_DEFAULT_REGION = $env:AWS_REGION
+              $zip = Resolve-Path "$env:WORKSPACE\\lambda.zip"
+              if (-not (Test-Path $zip)) { throw "lambda.zip not found at $env:WORKSPACE" }
 
-                terraform init init -upgrade -no-color -input=false
-                if errorlevel 1 exit /b 1
+              # Sanity: show terraform binary & pwd
+              Write-Host "Terraform path:"; & where.exe terraform
+              Write-Host "PWD:" (Get-Location)
 
-                terraform plan -no-color -input=false -var="aws_region=%AWS_REGION%" -var="lambda_zip=!ZIP!"
-                if errorlevel 1 exit /b 1
+              # Run Terraform from the lambda folder explicitly
+              $tfDir = "$env:WORKSPACE\\lambda"
 
-                terraform apply -no-color -input=false -auto-approve -var="aws_region=%AWS_REGION%" -var="lambda_zip=!ZIP!"
-                if errorlevel 1 exit /b 1
-              '''
-            }
+              terraform -chdir="$tfDir" init  -no-color -input=false
+              terraform -chdir="$tfDir" plan  -no-color -input=false `
+                -var "aws_region=$env:AWS_REGION" `
+                -var "lambda_zip=$($zip.Path)"
+              terraform -chdir="$tfDir" apply -no-color -input=false -auto-approve `
+                -var "aws_region=$env:AWS_REGION" `
+                -var "lambda_zip=$($zip.Path)"
+            '''
           }
         }
       }
