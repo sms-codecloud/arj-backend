@@ -33,6 +33,14 @@ resource "aws_lambda_function" "hello" {
 resource "aws_apigatewayv2_api" "http_api" {
   name          = "hello-world-http-api"
   protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_origins = ["*"]                # Or restrict to your UI CloudFront domain
+    allow_methods = ["GET", "POST", "OPTIONS"]
+    allow_headers = ["content-type", "authorization"]
+    expose_headers = ["content-type"]
+    max_age       = 3600
+  }
 }
 
 # Lambda proxy integration
