@@ -75,7 +75,7 @@ pipeline {
                 if (-not (Test-Path $tfDir)) { throw "Terraform dir not found: $tfDir" }
 
                 Write-Host "Terraform action: $env:ACTION"
-                terraform -chdir="$tfDir" terraform init -reconfigure
+                terraform -chdir="$tfDir" init -reconfigure
                 terraform -chdir="$tfDir" init -upgrade -no-color -input=false
 
                 if ($env:ACTION -eq "apply") {
