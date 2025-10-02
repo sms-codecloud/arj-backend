@@ -51,31 +51,35 @@ pipeline {
     }
 
     stage('Terraform Init & Apply') {
-        steps {
-            withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
-            withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
-                dir('lambda') {
-                bat '''
-                    @echo off
-                    setlocal ENABLEDELAYEDEXPANSION
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
+          withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
+            dir('lambda') {
+              bat '''
+                @echo off
+                setlocal ENABLEDELAYEDEXPANSION
 
-                    set AWS_DEFAULT_REGION=%AWS_REGION%
-                    set ZIP=%WORKSPACE%\\lambda.zip
-                    if not exist "!ZIP!" (
-                    echo ERROR: Zip not found at "!ZIP!"
-                    exit /b 1
-                    )
+                set AWS_DEFAULT_REGION=%AWS_REGION%
+                set ZIP=%WORKSPACE%\\lambda.zip
+                if not exist "!ZIP!" (
+                  echo ERROR: Zip not found at "!ZIP!"
+                  exit /b 1
+                )
 
-                    terraform init -no-color -input=false
-                    terraform plan -no-color -input=false -var="aws_region=%AWS_REGION%" -var="lambda_zip=!ZIP!"
-                    
-                '''
-                }
+                terraform init -no-color -input=false
+                if errorlevel 1 exit /b 1
+
+                terraform plan -no-color -input=false -var="aws_region=%AWS_REGION%" -var="lambda_zip=!ZIP!"
+                if errorlevel 1 exit /b 1
+
+                
+              '''
             }
+          }
         }
+      }
     }
-
-}
+  }
 
   post {
     success { echo 'Pipeline completed successfully!' }
