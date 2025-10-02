@@ -51,38 +51,31 @@ pipeline {
     }
 
     stage('Terraform Init & Apply') {
-            steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
-                    dir("${env.WORKSPACE}\\arj-backend\\lambda") {
-                        bat """
-                            set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
-                            set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
+        steps {
+            withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
+            withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
+                dir('lambda') {
+                bat '''
+                    @echo off
+                    setlocal ENABLEDELAYEDEXPANSION
 
-                            set PATH=C:\\binaries\\terraform;%PATH%
+                    set AWS_DEFAULT_REGION=%AWS_REGION%
+                    set ZIP=%WORKSPACE%\\lambda.zip
+                    if not exist "!ZIP!" (
+                    echo ERROR: Zip not found at "!ZIP!"
+                    exit /b 1
+                    )
 
-                            terraform init -no-color
-                            terraform plan -no-color -var="aws_region=%AWS_REGION%" -var="lambda_zip=$($zip.Path)"
-                        """
-                    }
+                    terraform init -no-color -input=false
+                    terraform plan -no-color -input=false -var="aws_region=%AWS_REGION%" -var="lambda_zip=!ZIP!"
+                    
+                '''
                 }
             }
         }
+    }
 
-    // stage('Terraform Init/Plan/Apply') {
-    //   steps {
-    //     withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
-    //       dir('lambda') {
-    //         powershell '''
-    //           $zip = Resolve-Path "$env:WORKSPACE\\lambda.zip"
-    //           terraform init
-    //           terraform plan  -var="aws_region=%AWS_REGION%" -var="lambda_zip=$($zip.Path)"
-    //           terraform apply -auto-approve -var="aws_region=%AWS_REGION%" -var="lambda_zip=$($zip.Path)"
-    //         '''
-    //       }
-    //     }
-    //   }
-    // }
-  }
+}
 
   post {
     success { echo 'Pipeline completed successfully!' }
