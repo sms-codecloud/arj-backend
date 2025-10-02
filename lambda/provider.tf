@@ -8,7 +8,7 @@ terraform {
   backend "s3" {
     bucket = "arj-terraform-state"
     key    = "terraform/state/lambda/terraform.tfstate"
-    region = var.aws_region
+    region = "ap-south-1"
   }
   required_version = ">= 1.3.0"
 }
