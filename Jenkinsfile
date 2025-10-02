@@ -62,7 +62,7 @@ pipeline {
               $zip = Resolve-Path "$env:WORKSPACE\\lambda_deploy.zip"
               if (-not (Test-Path $zip)) { throw "Zip not found: $env:WORKSPACE\\lambda_deploy.zip" }
 
-              $tfDir = "$env:WORKSPACE\\terraform"
+              $tfDir = "$env:WORKSPACE\\tf"
 
               terraform -chdir="$tfDir" init  -upgrade -no-color -input=false
               terraform -chdir="$tfDir" plan  -no-color -input=false `

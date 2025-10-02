@@ -1,0 +1,78 @@
+### .NET / C# ###
+# Build results
+bin/
+obj/
+publish/
+out/
+*.exe
+*.dll
+*.pdb
+*.log
+*.cache
+*.db
+*.db-shm
+*.db-wal
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / VS Code
+.idea/
+.vscode/
+*.userprefs
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+*.nuspec
+project.lock.json
+
+# Test results
+TestResult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# Lambda build artifacts
+lambda.zip
+lambda_deploy.zip
+
+### Terraform ###
+# Local state
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Terraform CLI config files
+.terraform/
+.terraform.lock.hcl
+
+# Ignore local variable files
+*.tfvars
+*.tfvars.json
+
+# Keep example variable files
+!*.example.tfvars
+
+### Jenkins / CI ###
+# (Usually workspace is outside repo, but ignore if any gets created)
+workspace/
+
+### OS junk ###
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
