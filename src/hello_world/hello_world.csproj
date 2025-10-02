@@ -3,7 +3,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!-- Optional: quicker startup -->
+    <OutputType>Library</OutputType>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <!-- Optional: improves startup -->
     <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 

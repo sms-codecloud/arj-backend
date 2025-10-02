@@ -37,7 +37,7 @@ pipeline {
             dotnet publish ".\\hello_world.csproj" -c Release -o "$publishDir" -r linux-x64 --self-contained false
             if ($LASTEXITCODE -ne 0) { Write-Error "dotnet publish failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
 
-            $zip = Join-Path $env:WORKSPACE 'lambda.zip'
+            $zip = Join-Path $env:WORKSPACE 'lambda_deploy.zip'
             if (Test-Path $zip) { Remove-Item $zip -Force }
             Push-Location $publishDir
             Compress-Archive -Path * -DestinationPath $zip -Force
@@ -46,42 +46,32 @@ pipeline {
             Write-Host "Created $zip"
           '''
         }
-        archiveArtifacts artifacts: 'lambda.zip', fingerprint: true
+        archiveArtifacts artifacts: 'lambda_deploy.zip', fingerprint: true
       }
-    }
+   }
+
 
     stage('Terraform Init & Apply') {
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
           withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
-            // No need for dir('lambda'); -chdir makes it explicit
             powershell '''
-              $ErrorActionPreference = "Stop"
+            $env:AWS_DEFAULT_REGION = $env:AWS_REGION
+            $zip = Resolve-Path "$env:WORKSPACE\\lambda_deploy.zip"
 
-              # Region & ZIP
-              $env:AWS_DEFAULT_REGION = $env:AWS_REGION
-              $zip = Resolve-Path "$env:WORKSPACE\\lambda.zip"
-              if (-not (Test-Path $zip)) { throw "lambda.zip not found at $env:WORKSPACE" }
-
-              # Sanity: show terraform binary & pwd
-              Write-Host "Terraform path:"; & where.exe terraform
-              Write-Host "PWD:" (Get-Location)
-
-              # Run Terraform from the lambda folder explicitly
-              $tfDir = "$env:WORKSPACE\\lambda"
-
-              terraform -chdir="$tfDir" init  -upgrade -no-color -input=false
-              terraform -chdir="$tfDir" plan  -no-color -input=false `
-                -var "aws_region=$env:AWS_REGION" `
-                -var "lambda_zip=$($zip.Path)"
-              terraform -chdir="$tfDir" apply -no-color -input=false -auto-approve `
-                -var "aws_region=$env:AWS_REGION" `
-                -var "lambda_zip=$($zip.Path)"
-            '''
+            terraform -chdir="$env:WORKSPACE\\lambda" init -no-color -input=false
+            terraform -chdir="$env:WORKSPACE\\lambda" plan -no-color -input=false `
+              -var "aws_region=$env:AWS_REGION" `
+              -var "lambda_zip=$($zip.Path)"
+            terraform -chdir="$env:WORKSPACE\\lambda" apply -no-color -input=false -auto-approve `
+              -var "aws_region=$env:AWS_REGION" `
+              -var "lambda_zip=$($zip.Path)"
+          '''
           }
         }
       }
     }
+
   }
 
   post {
