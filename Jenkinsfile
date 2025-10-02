@@ -50,6 +50,24 @@ pipeline {
       }
     }
 
+    stage('Terraform Init & Apply') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
+                    dir("${env.WORKSPACE}\\arj-backend\\lambda") {
+                        bat """
+                            set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+                            set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
+
+                            set PATH=C:\\binaries\\terraform;%PATH%
+
+                            terraform init -no-color
+                            terraform plan -no-color -var="aws_region=%AWS_REGION%" -var="lambda_zip=$($zip.Path)"
+                        """
+                    }
+                }
+            }
+        }
+
     // stage('Terraform Init/Plan/Apply') {
     //   steps {
     //     withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
