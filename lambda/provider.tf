@@ -6,8 +6,8 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = var.s3_bucket
-    key    = "terraform/state"
+    bucket = "arj-terraform-state"
+    key    = "terraform/state/lambda/terraform.tfstate"
     region = var.aws_region
   }
   required_version = ">= 1.3.0"
