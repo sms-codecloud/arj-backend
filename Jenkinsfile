@@ -57,7 +57,7 @@ pipeline {
       }
     }
 
-    stage('Deploy lambda') {
+    stage('Terraform Deploy') {
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
           withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}", "ACTION=${params.ACTION}"]) {
