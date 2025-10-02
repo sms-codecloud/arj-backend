@@ -70,7 +70,7 @@ pipeline {
               # Run Terraform from the lambda folder explicitly
               $tfDir = "$env:WORKSPACE\\lambda"
 
-              terraform -chdir="$tfDir" init  -no-color -input=false
+              terraform -chdir="$tfDir" init  -upgrade -no-color -input=false
               terraform -chdir="$tfDir" plan  -no-color -input=false `
                 -var "aws_region=$env:AWS_REGION" `
                 -var "lambda_zip=$($zip.Path)"
