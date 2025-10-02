@@ -72,7 +72,8 @@ pipeline {
                 terraform plan -no-color -input=false -var="aws_region=%AWS_REGION%" -var="lambda_zip=!ZIP!"
                 if errorlevel 1 exit /b 1
 
-                
+                terraform apply -no-color -input=false -auto-approve -var="aws_region=%AWS_REGION%" -var="lambda_zip=!ZIP!"
+                if errorlevel 1 exit /b 1
               '''
             }
           }
