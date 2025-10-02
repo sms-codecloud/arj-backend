@@ -21,11 +21,11 @@ pipeline {
     stage('Restore & Build & Test') {
       steps {
         // Restore/build using the solution - this covers src + tests
-        bat 'dotnet restore HelloWorld.sln'
-        bat 'dotnet build HelloWorld.sln -c Release --no-restore'
+        bat 'dotnet restore hello_world.sln'
+        bat 'dotnet build hello_world.sln -c Release --no-restore'
 
-        // Run tests if they exist (yours are under test/HelloWorld.Tests)
-        dir('test/HelloWorld.Tests') {
+        // Run tests if they exist (yours are under test/hello_world.Tests)
+        dir('test/hello_world.Tests') {
           bat 'dotnet test -c Release --no-build'
         }
       }
@@ -40,7 +40,7 @@ pipeline {
             if (Test-Path $publishDir) { Remove-Item -Recurse -Force $publishDir }
             New-Item -ItemType Directory -Path $publishDir | Out-Null
 
-            dotnet publish ".\\HelloWorld.csproj" -c Release -o "$publishDir" -r linux-x64 --self-contained false
+            dotnet publish ".\\hello_world.csproj" -c Release -o "$publishDir" -r linux-x64 --self-contained false
             if ($LASTEXITCODE -ne 0) { Write-Error "dotnet publish failed with exit code $LASTEXITCODE"; exit $LASTEXITCODE }
 
             $zip = Join-Path $env:WORKSPACE 'lambda.zip'

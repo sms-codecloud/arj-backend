@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace HelloWorld.Tests
+namespace hello_world.Tests
 {
     public class FunctionTest
     {

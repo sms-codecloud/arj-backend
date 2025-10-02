@@ -27,7 +27,7 @@ resource "aws_lambda_function" "hello" {
   filename         = var.lambda_zip
   function_name    = "hello-dotnet-lambda"
   role             = aws_iam_role.lambda_exec.arn
-  handler          = "HelloWorld::Function::FunctionHandler"
+  handler          = "hello_world::Function::FunctionHandler"
   runtime          = "dotnet8"
   source_code_hash = filebase64sha256(var.lambda_zip)
   publish          = true

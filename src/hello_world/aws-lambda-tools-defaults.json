@@ -1,12 +1,12 @@
 {
   "Information": {
-    "FunctionName": "HelloWorldFunction",
+    "FunctionName": "hello_worldFunction",
     "Description": "A .NET 8 AWS Lambda function",
     "PackageType": "Zip",
     "Runtime": "dotnet8",
     "MemorySize": 256,
     "Timeout": 30,
     "Role": "arn:aws:iam::YOUR_ACCOUNT_ID:role/YOUR_LAMBDA_ROLE",
-    "Handler": "HelloWorld::Function::FunctionHandler"
+    "Handler": "hello_world::Function::FunctionHandler"
   }
 }

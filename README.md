@@ -4,14 +4,14 @@ This project is a simple AWS Lambda function written in C#.NET Core that returns
 
 ## Project Structure
 
-- **src/HelloWorld**: Contains the source code for the Lambda function.
+- **src/hello_world**: Contains the source code for the Lambda function.
   - **Function.cs**: Implements the Lambda function handler.
-  - **HelloWorld.csproj**: Project file for the HelloWorld Lambda function.
+  - **hello_world.csproj**: Project file for the hello_world Lambda function.
   - **aws-lambda-tools-defaults.json**: Default settings for deploying the Lambda function.
 
-- **test/HelloWorld.Tests**: Contains unit tests for the Lambda function.
+- **test/hello_world.Tests**: Contains unit tests for the Lambda function.
   - **FunctionTest.cs**: Unit tests for the `Function` class.
-  - **HelloWorld.Tests.csproj**: Project file for the HelloWorld unit tests.
+  - **hello_world.Tests.csproj**: Project file for the hello_world unit tests.
 
 - **terraform**: Contains Terraform configuration files for deploying the Lambda function.
   - **main.tf**: Defines the Lambda function resource and its properties.
@@ -24,7 +24,7 @@ This project is a simple AWS Lambda function written in C#.NET Core that returns
 
 - **Jenkinsfile**: Defines the Jenkins pipeline for CI/CD.
 
-- **HelloWorld.sln**: Solution file that includes the HelloWorld project and its associated test project.
+- **hello_world.sln**: Solution file that includes the hello_world project and its associated test project.
 
 - **.gitignore**: Specifies files and directories to be ignored by Git.
 
@@ -37,13 +37,13 @@ This project is a simple AWS Lambda function written in C#.NET Core that returns
    Ensure that .NET Core SDK is installed on your machine.
 
 3. **Build the Project**: 
-   Navigate to the `src/HelloWorld` directory and run the following command:
+   Navigate to the `src/hello_world` directory and run the following command:
    ```
    dotnet build
    ```
 
 4. **Run Tests**: 
-   Navigate to the `test/HelloWorld.Tests` directory and run the following command:
+   Navigate to the `test/hello_world.Tests` directory and run the following command:
    ```
    dotnet test
    ```
