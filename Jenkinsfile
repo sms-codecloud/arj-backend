@@ -66,7 +66,7 @@ pipeline {
                   exit /b 1
                 )
 
-                terraform init -no-color -input=false
+                terraform init init -upgrade -no-color -input=false
                 if errorlevel 1 exit /b 1
 
                 terraform plan -no-color -input=false -var="aws_region=%AWS_REGION%" -var="lambda_zip=!ZIP!"
