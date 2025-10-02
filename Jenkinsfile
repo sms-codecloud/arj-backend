@@ -1,18 +1,17 @@
 pipeline {
     agent { label 'win-dev' }
 
-    environment {
-        AWS_REGION = 'ap-south-1'
-    }
+    // environment {
+    //     AWS_REGION = 'ap-south-1'
+    // }
 
     stages {
-        stage('software versions') {
+        stage('Versions') {
             steps {
-                // bat 'set PATH=C:\\binaries\\terraform;%PATH%'
-                // bat 'terraform --version'
-
                 bat 'git --version'
                 bat 'dotnet --version'
+                bat 'set PATH=C:\\binaries\\terraform;%PATH%'
+                bat 'terraform --version'
             }
         }
 
@@ -25,21 +24,31 @@ pipeline {
             }
         }
 
-        stage('Build Lambda Zip') {
+        stage('Restore & Test') {
             steps {
-                dir("${env.WORKSPACE}\\arj-backend") {
-                    powershell(script: '.\\scripts\\build_and_zip.ps1')
+                dir('src/hello_world') {
+                    bat 'dotnet restore'
+                    bat 'dotnet build -c Release'
+                }
+                dir('test/HelloWorld.Tests') {
+                    bat 'dotnet test -c Release --no-build'
                 }
             }
         }
 
-// stage('Validate Lambda Zip') {
-//     steps {
-//         dir("${env.WORKSPACE}\\arj-backend") {
-//             powershell(script: '.\\scripts\\validate_zip.ps1', returnStatus: true)
-//         }
-//     }
-// }
+        
+
+        stage('Publish & Zip') {
+            steps {
+                powershell '.\\scripts\\build_and_zip.ps1'
+                powershell '.\\scripts\\validate_zip.ps1'
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'lambda.zip', fingerprint: true
+                }
+            }
+    }
 
         // stage('Deploy To Lambda') {
         //     steps {
@@ -52,7 +61,7 @@ pipeline {
         //                     set PATH=C:\\binaries\\terraform;%PATH%
 
         //                     terraform init -no-color
-        //                     terraform plan -no-color
+        //                     terraform plan -no-color -var="lambda_zip=$($zip.Path)"
         //                 """
         //             }
         //         }

@@ -1,42 +1,21 @@
-param()
+# after you locate $ProjectPath
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
+$PublishDir = Join-Path $SrcDir 'publish'
+if (Test-Path $PublishDir) { Remove-Item -Recurse -Force $PublishDir }
 
-$RootDir  = Resolve-Path (Join-Path $PSScriptRoot '..') | Select-Object -ExpandProperty Path
-$SrcDir   = Join-Path $RootDir 'src'
-$ZipFile  = Join-Path $RootDir 'lambda.zip'
-
-$csproj = Get-ChildItem -Path $SrcDir -Recurse -Filter *.csproj | Select-Object -First 1
-if (-not $csproj) {
-    Write-Error "No .csproj found under $SrcDir"
-    exit 1
-}
-$ProjectPath = $csproj.FullName
-Write-Host "Using project: $ProjectPath"
-
-$PublishDir  = Join-Path $env:TEMP ("lambda_publish_" + [System.Guid]::NewGuid().ToString("N"))
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $PublishDir
-New-Item -ItemType Directory -Path $PublishDir | Out-Null
-
-Write-Host "Restoring..."
-dotnet restore $ProjectPath
-
-Write-Host "Publishing for .NET 8 (linux-x64, AOT)..."
-dotnet publish $ProjectPath -c Release -r linux-x64 -o $PublishDir /p:PublishAot=true /p:StripSymbols=true --self-contained false
+# framework-dependent build for linux (Lambda host is linux)
+dotnet publish "$ProjectPath" -c Release -o "$PublishDir" -r linux-x64 --self-contained false
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "dotnet publish failed with exit code $LASTEXITCODE"
     exit $LASTEXITCODE
 }
 
+# zip the published contents
+$ZipFile  = Join-Path $RootDir 'lambda.zip'
 if (Test-Path $ZipFile) { Remove-Item $ZipFile -Force }
-
-Write-Host "Creating ZIP package..."
 Push-Location $PublishDir
 Compress-Archive -Path * -DestinationPath $ZipFile -Force
 Pop-Location
-
-Remove-Item -Recurse -Force $PublishDir
 
 Write-Host "Build complete: $ZipFile"

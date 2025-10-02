@@ -6,14 +6,15 @@ variable "lambda_function_name" {
 variable "lambda_runtime" {
   description = "The runtime environment for the Lambda function"
   type        = string
-  default     = "dotnetcore3.1"
+  default     = "dotnet8"
 }
 
 variable "lambda_handler" {
   description = "The handler for the Lambda function"
   type        = string
-  default     = "HelloWorld::HelloWorld.Function::FunctionHandler"
+  default     = "HelloWorld::Function::FunctionHandler"
 }
+
 
 variable "s3_bucket" {
   description = "The S3 bucket where the Lambda deployment package will be stored"
