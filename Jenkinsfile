@@ -51,7 +51,7 @@ pipeline {
    }
 
 
-    stage('Terraform Init & Apply') {
+    stage('Deploy lambda') {
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
           withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
@@ -62,7 +62,7 @@ pipeline {
               $zip = Resolve-Path "$env:WORKSPACE\\lambda_deploy.zip"
               if (-not (Test-Path $zip)) { throw "Zip not found: $env:WORKSPACE\\lambda_deploy.zip" }
 
-              $tfDir = "$env:WORKSPACE\\lambda"
+              $tfDir = "$env:WORKSPACE\\terraform"
 
               terraform -chdir="$tfDir" init  -upgrade -no-color -input=false
               terraform -chdir="$tfDir" plan  -no-color -input=false `
@@ -76,7 +76,6 @@ pipeline {
         }
       }
     }
-
   }
 
   post {
