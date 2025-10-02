@@ -56,17 +56,22 @@ pipeline {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_secrets_shankar']]) {
           withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
             powershell '''
-            $env:AWS_DEFAULT_REGION = $env:AWS_REGION
-            $zip = Resolve-Path "$env:WORKSPACE\\lambda_deploy.zip"
+              $ErrorActionPreference = "Stop"
+              $env:AWS_DEFAULT_REGION = $env:AWS_REGION
 
-            terraform -chdir="$env:WORKSPACE\\lambda" init -no-color -input=false
-            terraform -chdir="$env:WORKSPACE\\lambda" plan -no-color -input=false `
-              -var "aws_region=$env:AWS_REGION" `
-              -var "lambda_zip=$($zip.Path)"
-            terraform -chdir="$env:WORKSPACE\\lambda" apply -no-color -input=false -auto-approve `
-              -var "aws_region=$env:AWS_REGION" `
-              -var "lambda_zip=$($zip.Path)"
-          '''
+              $zip = Resolve-Path "$env:WORKSPACE\\lambda_deploy.zip"
+              if (-not (Test-Path $zip)) { throw "Zip not found: $env:WORKSPACE\\lambda_deploy.zip" }
+
+              $tfDir = "$env:WORKSPACE\\lambda"
+
+              terraform -chdir="$tfDir" init  -upgrade -no-color -input=false
+              terraform -chdir="$tfDir" plan  -no-color -input=false `
+                -var "aws_region=$env:AWS_REGION" `
+                -var "lambda_zip=$($zip.Path)"
+              terraform -chdir="$tfDir" apply -no-color -input=false -auto-approve `
+                -var "aws_region=$env:AWS_REGION" `
+                -var "lambda_zip=$($zip.Path)"
+            '''
           }
         }
       }
