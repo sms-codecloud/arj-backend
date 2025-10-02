@@ -8,10 +8,11 @@ pipeline {
     stages {
         stage('Versions') {
             steps {
+                withEnv(["PATH=C:\\binaries\\terraform;${env.PATH}"]) {
                 bat 'git --version'
                 bat 'dotnet --version'
-                bat 'set PATH=C:\\binaries\\terraform;%PATH%'
                 bat 'terraform --version'
+                }
             }
         }
 
